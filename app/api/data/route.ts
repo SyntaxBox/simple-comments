@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
 
 // Global array to store data (will be reset on server restart)
-const dataStore: any[] = [];
+type Comment = { id: string; name: string; comment: string; timestamp: string };
+const dataStore: Comment[] = [];
 
 export async function POST(req: NextRequest) {
   try {
@@ -54,37 +55,4 @@ export async function GET() {
       { status: 500 },
     );
   }
-}
-
-// Optional: Additional array manipulation methods
-export function deleteItem(index: number) {
-  if (index >= 0 && index < dataStore.length) {
-    dataStore.splice(index, 1);
-    return true;
-  }
-  return false;
-}
-
-export function updateItem(index: number, updatedObject: any) {
-  if (index >= 0 && index < dataStore.length) {
-    dataStore[index] = {
-      ...dataStore[index],
-      ...updatedObject,
-      timestamp: new Date().toISOString(),
-    };
-    return true;
-  }
-  return false;
-}
-
-export function clearStore() {
-  dataStore.length = 0;
-}
-
-export function getItem(index: number) {
-  return dataStore[index];
-}
-
-export function findItemById(id: string) {
-  return dataStore.find((item) => item.id === id);
 }
