@@ -62,6 +62,7 @@ export async function GET() {
     try {
       await fs.access(filePath);
     } catch (accessError) {
+      console.log(accessError);
       // If file doesn't exist, create it with an empty array
       await fs.writeFile(filePath, JSON.stringify([], null, 2), {
         encoding: "utf8",

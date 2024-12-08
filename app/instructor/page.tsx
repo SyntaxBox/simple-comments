@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { socket } from "@/app/socket";
 import { CardTitle } from "@/components/ui/card";
 import { User, MessageCircle, Clock, Download } from "lucide-react";
