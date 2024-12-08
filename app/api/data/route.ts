@@ -1,27 +1,11 @@
-import fs from "fs/promises";
 import { NextRequest } from "next/server";
-import path from "path";
 
-// Ensure an absolute path that works across different environments
-const filePath = path.join(process.cwd(), "data.json");
+// Global array to store data (will be reset on server restart)
+const dataStore: any[] = [];
 
 export async function POST(req: NextRequest) {
   try {
-    // Ensure the directory exists
-    const directory = path.dirname(filePath);
-    await fs.mkdir(directory, { recursive: true });
-
-    // Read existing data or start with an empty array
-    let fileContents = [];
-    try {
-      const existingData = await fs.readFile(filePath, "utf8");
-      fileContents = JSON.parse(existingData);
-    } catch (readError) {
-      // File doesn't exist or is empty, start with an empty array
-      console.log("Creating new file:", readError);
-    }
-
-    // Add new object from request
+    // Parse the new object from the request
     const newObject = await req.json();
 
     // Add timestamp if not present
@@ -29,22 +13,22 @@ export async function POST(req: NextRequest) {
       newObject.timestamp = new Date().toISOString();
     }
 
-    fileContents.push(newObject);
+    // Add unique identifier if not present
+    if (!newObject.id) {
+      newObject.id = dataStore.length.toString();
+    }
 
-    // Write updated contents with proper formatting
-    await fs.writeFile(filePath, JSON.stringify(fileContents, null, 2), {
-      encoding: "utf8",
-      flag: "w",
-      mode: 0o666,
-    });
+    // Store the object in the array
+    dataStore.push(newObject);
 
     return Response.json({
       success: true,
       message: "Data successfully added",
-      totalEntries: fileContents.length,
+      totalEntries: dataStore.length,
+      index: dataStore.length - 1,
     });
   } catch (error) {
-    console.error("File writing error:", error);
+    console.error("Data storage error:", error);
     return Response.json(
       {
         success: false,
@@ -58,26 +42,9 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   try {
-    // Ensure the file exists before reading
-    try {
-      await fs.access(filePath);
-    } catch (accessError) {
-      console.log(accessError);
-      // If file doesn't exist, create it with an empty array
-      await fs.writeFile(filePath, JSON.stringify([], null, 2), {
-        encoding: "utf8",
-        flag: "w",
-        mode: 0o666,
-      });
-    }
-
-    // Read the file
-    const fileData = await fs.readFile(filePath, "utf8");
-    const fileContents = JSON.parse(fileData);
-
-    return Response.json(fileContents);
+    return Response.json(dataStore);
   } catch (error) {
-    console.error("File reading error:", error);
+    console.error("Data retrieval error:", error);
     return Response.json(
       {
         success: false,
@@ -87,4 +54,37 @@ export async function GET() {
       { status: 500 },
     );
   }
+}
+
+// Optional: Additional array manipulation methods
+export function deleteItem(index: number) {
+  if (index >= 0 && index < dataStore.length) {
+    dataStore.splice(index, 1);
+    return true;
+  }
+  return false;
+}
+
+export function updateItem(index: number, updatedObject: any) {
+  if (index >= 0 && index < dataStore.length) {
+    dataStore[index] = {
+      ...dataStore[index],
+      ...updatedObject,
+      timestamp: new Date().toISOString(),
+    };
+    return true;
+  }
+  return false;
+}
+
+export function clearStore() {
+  dataStore.length = 0;
+}
+
+export function getItem(index: number) {
+  return dataStore[index];
+}
+
+export function findItemById(id: string) {
+  return dataStore.find((item) => item.id === id);
 }
