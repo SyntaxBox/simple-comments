@@ -1,17 +1,20 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { socket } from "@/app/socket";
 import { CardTitle } from "@/components/ui/card";
-import { User, MessageCircle, Clock } from "lucide-react";
+import { User, MessageCircle, Clock, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface Comment {
   name: string;
   comment: string;
   timestamp: Date;
+  id?: string; // Add optional id for unique key
 }
 
 export default function InstructorPage() {
   const [comments, setComments] = useState<Comment[]>([]);
+  const [newCommentId, setNewCommentId] = useState<string | null>(null);
 
   // Fetch the comments from the backend on component mount
   useEffect(() => {
@@ -20,7 +23,14 @@ export default function InstructorPage() {
         const response = await fetch("/api/data"); // Adjust with your API endpoint
         const data = await response.json();
         console.log(data);
-        if (data) setComments([...comments, ...data]); // Add fetched data to comments state
+        if (data) {
+          // Add unique ids to fetched comments
+          const commentsWithIds = data.map((comment: Comment) => ({
+            ...comment,
+            id: `comment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          }));
+          setComments(commentsWithIds);
+        }
       } catch (error) {
         console.log("Error fetching comments:", error);
       }
@@ -30,7 +40,22 @@ export default function InstructorPage() {
 
     // Real-time socket listener
     socket.on("message", (data: Comment) => {
-      setComments((prevComments) => [data, ...prevComments]); // Add new comment on socket message
+      // Add a unique id to the new comment
+      const newComment = {
+        ...data,
+        id: `comment-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      };
+
+      // Set the new comment id to trigger animation
+      setNewCommentId(newComment.id);
+
+      // Add new comment to the beginning of the list
+      setComments((prevComments) => [newComment, ...prevComments]);
+
+      // Remove the new comment id after animation
+      setTimeout(() => {
+        setNewCommentId(null);
+      }, 2000);
     });
 
     // Clean up socket listener on component unmount
@@ -38,6 +63,23 @@ export default function InstructorPage() {
       socket.off("message");
     };
   }, []); // Empty dependency array to run only on mount
+
+  // Function to download comments as JSON
+  const downloadCommentsAsJSON = () => {
+    // Create a blob with the comments data
+    const jsonString = JSON.stringify(comments, null, 2);
+    const blob = new Blob([jsonString], { type: "application/json" });
+
+    // Create a download link
+    const downloadLink = document.createElement("a");
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = `comments_${new Date().toISOString().split("T")[0]}.json`;
+
+    // Trigger the download
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  };
 
   // Color palette for dynamic background
   const getColorVariant = (index: number) => {
@@ -60,6 +102,15 @@ export default function InstructorPage() {
               <MessageCircle className="w-8 h-8" />
               لوحة تعليقات المستمعين
             </CardTitle>
+            {comments.length > 0 && (
+              <Button
+                onClick={downloadCommentsAsJSON}
+                variant="ghost"
+                className="border"
+              >
+                <Download className="w-8 h-8" />
+              </Button>
+            )}
           </div>
         </div>
         <div className="p-2 pt-4 bg-white ">
@@ -81,7 +132,7 @@ export default function InstructorPage() {
                 )
                 .map((comment, index) => (
                   <div
-                    key={index}
+                    key={comment.id}
                     className={`
                     ${getColorVariant(index)}  
                     border rounded-lg 
@@ -89,7 +140,11 @@ export default function InstructorPage() {
                     transition-all duration-300 
                     hover:shadow-md 
                     hover:translate-x-1
-                    animate-fade-in-up
+                    ${
+                      comment.id === newCommentId
+                        ? "animate-bounce-in-down"
+                        : ""
+                    }
                   `}
                   >
                     <div
@@ -138,6 +193,7 @@ export default function InstructorPage() {
     </div>
   );
 }
+
 function getLanguageDirection(text: string) {
   // Regular expression to match Arabic characters
   const arabicRegex = /[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/;
