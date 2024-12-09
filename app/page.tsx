@@ -48,7 +48,7 @@ export default function ListenersPage() {
           <div className="flex items-center justify-between text-white">
             <CardTitle className="flex items-center gap-3">
               <MessageSquare className="w-8 h-8" />
-              إرسال التعليقات
+              رسائل الشكر
             </CardTitle>
           </div>
         </CardHeader>
@@ -60,13 +60,13 @@ export default function ListenersPage() {
                 className="flex items-center gap-2 text-gray-700"
               >
                 <User className="w-5 h-5 text-green-500" />
-                اسمك
+                الإسم واللقب
               </Label>
               <Input
                 id="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="أدخل اسمك"
+                placeholder="أدخل إسمك"
                 className="border-green-300 transition-all focus-visible:ring-green-400"
               />
             </div>
@@ -76,7 +76,7 @@ export default function ListenersPage() {
                 className="flex items-center gap-2 text-gray-700"
               >
                 <MessageSquare className="w-5 h-5 text-teal-500" />
-                تعليقك
+                رسالة الشكر
               </Label>
               <Textarea
                 id="comment"
