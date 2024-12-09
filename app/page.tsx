@@ -89,7 +89,7 @@ export default function ListenersPage() {
             <Button
               type="submit"
               className="w-full bg-gradient-to-r  from-green-500 to-teal-600 items-center justify-center gap-2"
-              disabled={isSubmitting}
+              disabled={isSubmitting || submitted}
             >
               {isSubmitting ? (
                 <span className="animate-pulse">جاري الإرسال...</span>
