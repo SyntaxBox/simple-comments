@@ -12,7 +12,7 @@ export default function ListenersPage() {
   const [name, setName] = useState("");
   const [comment, setComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [submitted, setSubmitted] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !comment.trim()) {
@@ -35,9 +35,9 @@ export default function ListenersPage() {
     setComment("");
 
     // Reset submission state after a short delay
-    setTimeout(() => {
-      setIsSubmitting(false);
-    }, 1500);
+    socket.close();
+    setSubmitted(true);
+    setIsSubmitting(false);
   };
 
   return (
@@ -93,9 +93,9 @@ export default function ListenersPage() {
               disabled={isSubmitting}
             >
               {isSubmitting ? (
-                <>
-                  <span className="animate-pulse">جاري الإرسال...</span>
-                </>
+                <span className="animate-pulse">جاري الإرسال...</span>
+              ) : submitted ? (
+                <span>تم ارسال الرسالة</span>
               ) : (
                 <>
                   <Send className="w-5 h-5" />
