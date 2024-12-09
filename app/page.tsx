@@ -41,8 +41,7 @@ export default function ListenersPage() {
   };
 
   return (
-    <div className="px-2 py-1 bg-gradient-to-br from-white via-green-50 to-teal-50 min-h-screen flex flex-col items-center justify-between">
-      <span></span>
+    <div className="px-2 py-1 bg-gradient-to-br from-white via-green-50 to-teal-50 min-h-screen flex flex-col items-center justify-center gap-3">
       <Card className="max-w-md w-full shadow-xl transform transition-all hover:scale-[1.01] animate-fade-in">
         <CardHeader className="bg-gradient-to-r from-green-500 to-teal-600 ext-white rounded-t-xl">
           <div className="flex items-center justify-between text-white">
